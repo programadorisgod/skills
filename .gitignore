@@ -1,0 +1,22 @@
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor & IDE Directories
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary SQL Server Artifacts
+*.mdf
+*.ldf
+*.bak
+*.dmp
+
+# Node / Scratch Scripts (if used locally)
+node_modules/
+*.log
+.env
+.env.local
