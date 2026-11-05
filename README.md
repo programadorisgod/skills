@@ -1,48 +1,63 @@
-# SQL Server High-Performance & Concurrency Handbook
+# Skills — Full-Stack & Database Engineering Patterns
 
-Guía de ingeniería, patrones arquitectónicos y técnicas avanzadas de optimización de consultas en **Microsoft SQL Server (MSSQL)** para cargas de trabajo analíticas, dashboards web y transacciones concurrentes de alto volumen.
+Repositorio centralizado de estándares de ingeniería, patrones arquitectónicos, optimizaciones de bases de datos de alto volumen (SQL Server / MSSQL), diseño de interfaces (UI) y experiencia de usuario (UX) para aplicaciones modernas y analíticas.
 
-Este compendio reúne lecciones de bajo nivel aprendidas en producción, traduciendo diagnósticos de planes de ejecución reales a patrones de código directamente aplicables en tus proyectos.
-
----
-
-## Índice de Referencias Técnicas
-
-| Módulo | Tema Central | Problema de Motor Mitigado |
-|---|---|---|
-| [01. Row Goal Trap y Hints](./references/01-row-goal-optimizer.md) | `DISABLE_OPTIMIZER_ROWGOAL` | Paginación degradada por filtros selectivos o derivados |
-| [02. Two-Stage Pagination](./references/02-two-stage-pagination.md) | Selección Ligera + Enriquecimiento Tardío | Consultas con múltiples CTEs analíticos y agregaciones costosas |
-| [03. SARGabilidad e Indexación](./references/03-sargability-indexing.md) | `Index Range Seek` vs `Table Scan` | Búsquedas de texto, funciones en `WHERE` y conversiones de tipo |
-| [04. Concurrencia y Deadlocks](./references/04-concurrency-deadlocks.md) | Error 1205, `UPDLOCK, HOLDLOCK`, Attention Signal | Deadlocks en procesos concurrentes y contención de buffers de red |
-| [05. TempDB y Collation](./references/05-tempdb-and-collation.md) | Error 468, `COLLATE database_default` | Incompatibilidad de intercalación en `#tmp` y desbordes a disco |
-| [06. Poda de Conteos (Count Pruning)](./references/06-count-pruning.md) | `buildFastCountSql`, `skipCount` | `SELECT COUNT(*)` masivos que saturan CPU al paginar en web |
+Este repositorio documenta lecciones reales aprendidas en entornos de producción de alta exigencia, estructuradas de forma modular y con ejemplos genéricos para su rápida adopción en nuevos proyectos.
 
 ---
 
-## Entorno de Pruebas Reproducible
+## Estructura del Repositorio
 
-El repositorio incluye un script T-SQL completo en [`scripts/00-schema-and-seed.sql`](./scripts/00-schema-and-seed.sql) para crear una base de datos de pruebas (`TiendaDemo`) con 100.000 órdenes y relaciones maestras.
-
-Puedes ejecutarlo en **SQL Server Management Studio (SSMS)** o **Azure Data Studio** para comparar métricas con `SET STATISTICS IO, TIME ON` y analizar los planes gráficos de ejecución (**Ctrl + M**).
+```text
+skills/
+├── sql/                   # Base de datos, rendimiento del motor, concurrencia y optimizaciones
+│   ├── README.md          # Guía general de SQL Server Performance
+│   ├── scripts/           # Esquemas DDL reproducibles y semillas de prueba (TiendaDemo)
+│   └── references/        # Documentos técnicos a bajo nivel (01 a 06)
+├── ux/                    # Experiencia de usuario, patrones de interacción y reactividad
+│   └── README.md          # Guía de patrones UX para dashboards y tablas complejas
+└── ui/                    # Componentes visuales, diseño atómico y layout
+    └── README.md          # Principios de diseño visual, densidad y estilos
+```
 
 ---
 
-## Checklist Rápido de Validación para Desarrolladores
+## 1. 🗄️ SQL Engineering (`sql/`)
 
-Antes de desplegar una consulta a producción en SQL Server:
+Optimización de motores relacionales Microsoft SQL Server (MSSQL), análisis de planes de ejecución y reducción drástica de tiempos de respuesta:
 
-- [ ] **Paginación Web (`OFFSET ... FETCH NEXT`):**
-  - ¿El filtro del `WHERE` descarta más del 90% del universo de datos? Si es así, evalúa `OPTION (MAXDOP 2, USE HINT('DISABLE_OPTIMIZER_ROWGOAL'))` para evitar que el optimizador recorra millones de filas buscando 25 coincidencias.
-  - Si el filtro es amplio (> 80% coincide), **NO** uses el hint; permite que el motor se detenga de forma anticipada.
-- [ ] **Enriquecimiento de Filas (JOINs y Agregaciones):**
-  - ¿La consulta une 5 o más tablas y calcula sumatorias para mostrar solo una página de 25 filas? Aplica la arquitectura **Two-Stage Pagination**: filtra y ordena solo los IDs clave en el Stage 1, y enriquece únicamente esas 25 filas en el Stage 2.
-- [ ] **SARGabilidad:**
-  - ¿Hay filtros `LIKE '%VALOR%'`? Asegura búsqueda por prefijo (`LIKE 'VALOR%'`) para aprovechar el árbol B-Tree del índice.
-  - ¿Hay funciones sobre columnas indexadas (`CAST(Fecha AS DATE) = @f`)? Conviértelas a rangos de fechas sargables (`Fecha >= @f AND Fecha < @fSig`).
-- [ ] **Aislamiento y Concurrencia:**
-  - En dashboards de solo lectura, usa `WITH (NOLOCK)` para evitar bloqueos compartidos (`S`).
-  - En asignaciones y actualización de inventario concurrente, utiliza `WITH (UPDLOCK, HOLDLOCK)` para forzar serialización atómica y evitar deadlocks (Error 1205).
-- [ ] **Tablas Temporales (`#tmp`):**
-  - En toda columna de texto (`VARCHAR`, `NVARCHAR`), declara explícitamente `COLLATE database_default` para evitar el Error 468 ante discrepancias con `tempdb`.
-- [ ] **Cálculo de Totales (`COUNT`):**
-  - Al consultar el total de registros para la paginación, retira todos los CTEs analíticos y JOINs que no modifiquen el número de filas (`Count Pruning`).
+- **[01. Row Goal Trap y Hints](sql/references/01-row-goal-optimizer.md)**: Matriz de decisión para aplicar dinámicamente `USE HINT('DISABLE_OPTIMIZER_ROWGOAL')` ante filtros selectivos vs generales.
+- **[02. Two-Stage Pagination](sql/references/02-two-stage-pagination.md)**: Desacople de consultas pesadas en dos fases (Selección Ligera de IDs + Enriquecimiento Tardío por PK).
+- **[03. SARGabilidad e Indexación](sql/references/03-sargability-indexing.md)**: Búsquedas por prefijo B-Tree en < 5 ms vs Table Scans, rangos de fechas y mitigación de conversiones implícitas (`NVARCHAR` vs `VARCHAR`).
+- **[04. Concurrencia y Deadlocks (1205)](sql/references/04-concurrency-deadlocks.md)**: Aislamiento con `WITH (NOLOCK)`, bloqueos atómicos preventivos con `WITH (UPDLOCK, HOLDLOCK)` y cancelación de queries huérfanas mediante paquetes TDS Attention.
+- **[05. TempDB y Collation (468)](sql/references/05-tempdb-and-collation.md)**: Prevención de errores de intercalación entre bases de usuario y `tempdb` usando `COLLATE database_default`.
+- **[06. Poda de Conteos y Short-Circuit](sql/references/06-count-pruning.md)**: Optimización de `SELECT COUNT(*)` mediante poda de CTEs analíticos (`buildFastCountSql`) y parámetro `skipCount`.
+
+👉 *Incluye entorno reproducible con 100.000 filas sintéticas en [`sql/scripts/00-schema-and-seed.sql`](sql/scripts/00-schema-and-seed.sql).*
+
+---
+
+## 2. 🎨 User Experience Patterns (`ux/`)
+
+Técnicas para interfaces analíticas ultra-fluidas y sin fricción:
+
+- **Optimistic UI & Transiciones Inmediatas**: Actualización visual reactiva antes de esperar confirmación del servidor.
+- **Paginación con Memoria de Conteo**: Prevención de re-consultas del total de registros (`skipCount`) cuando los filtros no cambian.
+- **Prevención de Condiciones de Carrera (Race Conditions)**: Cancelación de peticiones previas con `AbortController` al alternar entre pestañas.
+- **Micro-Animaciones Desbloqueadas**: Separación de capas CSS para apertura instantánea de paneles laterales y modales (sin bloqueo por renderizado de tablas masivas).
+
+---
+
+## 3. 📐 Interface Design (`ui/`)
+
+Patrones de diseño visual orientados a densidad de datos y legibilidad:
+
+- **Data Tables de Alta Densidad**: Tipografía monoespaciada para cifras monetarias, alineaciones contables y truncamiento inteligente de texto con tooltips.
+- **Layouts con Sticky Headers y Scroll Virtualizado**: Navegación de grandes volúmenes de filas manteniendo cabeceras visibles.
+- **Feedback de Estados**: Skeletons adaptativos en lugar de spinners invasivos, toasts no intrusivos y badges de estado con alto contraste accesible.
+
+---
+
+## Licencia
+
+MIT License — Libre para uso personal, profesional y en equipos de ingeniería.
