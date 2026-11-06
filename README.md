@@ -1,6 +1,6 @@
-# Skills — Full-Stack & Database Engineering Patterns
+# Skills — Full-Stack, Database & Cache Engineering Patterns
 
-Repositorio centralizado de estándares de ingeniería, patrones arquitectónicos, optimizaciones de bases de datos de alto volumen (SQL Server / MSSQL), diseño de interfaces (UI) y experiencia de usuario (UX) para aplicaciones modernas y analíticas.
+Repositorio centralizado de estándares de ingeniería, patrones arquitectónicos, optimizaciones de bases de datos de alto volumen (SQL Server / MSSQL), diseño de interfaces (UI), experiencia de usuario (UX) y arquitecturas de caché granular de alto rendimiento para aplicaciones modernas y analíticas.
 
 Este repositorio documenta lecciones reales aprendidas en entornos de producción de alta exigencia, estructuradas de forma modular y con ejemplos genéricos para su rápida adopción en nuevos proyectos.
 
@@ -10,14 +10,17 @@ Este repositorio documenta lecciones reales aprendidas en entornos de producció
 
 ```text
 skills/
-├── sql/                   # Base de datos, rendimiento del motor, concurrencia y optimizaciones
-│   ├── README.md          # Guía general de SQL Server Performance
-│   ├── scripts/           # Esquemas DDL reproducibles y semillas de prueba (TiendaDemo)
-│   └── references/        # Documentos técnicos a bajo nivel (01 a 06)
-├── ux/                    # Experiencia de usuario, patrones de interacción y reactividad
-│   └── README.md          # Guía de patrones UX para dashboards y tablas complejas
-└── ui/                    # Componentes visuales, diseño atómico y layout
-    └── README.md          # Principios de diseño visual, densidad y estilos
+├── sql/                           # Base de datos, rendimiento del motor, concurrencia y optimizaciones
+│   ├── README.md                  # Guía general de SQL Server Performance
+│   ├── scripts/                   # Esquemas DDL reproducibles y semillas de prueba (TiendaDemo)
+│   └── references/                # Documentos técnicos a bajo nivel (01 a 06)
+├── cache-architecture-patterns/   # Arquitectura de caché granular, estrategias intercambiables y bajo consumo RAM
+│   ├── README.md                  # Visión general, benchmark (<2.8 MB para 10.000 filas) y patrones
+│   └── references/                # Guías a bajo nivel (01 a 05: Estrategias, V8, Mutación In-Place, etc.)
+├── ux/                            # Experiencia de usuario, patrones de interacción y reactividad
+│   └── README.md                  # Guía de patrones UX para dashboards y tablas complejas
+└── ui/                            # Componentes visuales, diseño atómico y layout
+    └── README.md                  # Principios de diseño visual, densidad y estilos
 ```
 
 ---
@@ -37,7 +40,19 @@ Optimización de motores relacionales Microsoft SQL Server (MSSQL), análisis de
 
 ---
 
-## 2. 🎨 User Experience Patterns (`ux/`)
+## 2. ⚡ Cache Architecture Patterns (`cache-architecture-patterns/`)
+
+Diseño e implementación de sistemas de almacenamiento en caché en memoria y distribuidos, optimizados para ultra-baja huella de RAM y latencia en microsegundos:
+
+- **[01. Strategy Pattern & Interfaces](cache-architecture-patterns/references/01-strategy-pattern-interfaces.md)**: Contrato desacoplado `ICacheStrategy<T>` que permite alternar sin costo entre `MemoryCacheStrategy` y `RedisCacheStrategy`.
+- **[02. Optimización de Memoria en V8](cache-architecture-patterns/references/02-v8-memory-optimization.md)**: Hidden Classes monomórficas, punteros *Smi*, *String Interning* y reducción de consumo (< 2.8 MB para 10.000 registros).
+- **[03. Mutación Granular In-Place](cache-architecture-patterns/references/03-granular-inplace-mutation.md)**: Eliminación del refetch destructivo mediante `patch()`, sincronización bidireccional y patrón React 19 en render.
+- **[04. Patrón Restored Owners](cache-architecture-patterns/references/04-restored-owners-pattern.md)**: Reversión atómica de marcas transitorias en SQL con `#tmp` indexada (~2 ms) preservando asignatarios originales sin refetch.
+- **[05. TTL Escalonado y Reactividad Multi-Tenant](cache-architecture-patterns/references/05-tiered-ttl-and-reactivity.md)**: Clasificación de datos por grado de inmutabilidad (10h históricos vs 15m transaccionales), deduplicación de promesas e invalidación push por SSE.
+
+---
+
+## 3. 🎨 User Experience Patterns (`ux/`)
 
 Técnicas para interfaces analíticas ultra-fluidas y sin fricción:
 
@@ -48,7 +63,7 @@ Técnicas para interfaces analíticas ultra-fluidas y sin fricción:
 
 ---
 
-## 3. 📐 Interface Design (`ui/`)
+## 4. 📐 Interface Design (`ui/`)
 
 Patrones de diseño visual orientados a densidad de datos y legibilidad:
 
