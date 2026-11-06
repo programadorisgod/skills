@@ -54,12 +54,15 @@ Diseño e implementación de sistemas de almacenamiento en caché en memoria y d
 
 ## 3. 🎨 User Experience Patterns (`ux/`)
 
-Técnicas para interfaces analíticas ultra-fluidas y sin fricción:
+Técnicas y estándares de interacción para interfaces analíticas ultra-fluidas, reactivas y sin fricción:
 
-- **Optimistic UI & Transiciones Inmediatas**: Actualización visual reactiva antes de esperar confirmación del servidor.
-- **Paginación con Memoria de Conteo**: Prevención de re-consultas del total de registros (`skipCount`) cuando los filtros no cambian.
-- **Prevención de Condiciones de Carrera (Race Conditions)**: Cancelación de peticiones previas con `AbortController` al alternar entre pestañas.
-- **Micro-Animaciones Desbloqueadas**: Separación de capas CSS para apertura instantánea de paneles laterales y modales (sin bloqueo por renderizado de tablas masivas).
+- **[01. Paginación con Memoria de Conteo](ux/references/01-skipcount-pagination-shortcircuit.md)**: Reducción del 98% en latencia entre páginas mediante `skipCount=1`, memoria de total en cliente y poda de subconsultas analíticas (`buildFastCountSql`).
+- **[02. Cancelación Reactiva y Race Conditions](ux/references/02-abortcontroller-race-conditions.md)**: Prevención de inconsistencias al alternar filtros con `AbortController`, guarda contra el flash de "No se encontraron registros", y emisión de paquetes TDS Attention en MSSQL.
+- **[03. Arquitectura Two-Tier (Carga Progresiva)](ux/references/03-two-tier-progressive-loading.md)**: Desacople en Tier 1 (Resumen en 30ms para pintar métricas en frame 0) + Tier 2 (Detalle paginado), eliminando bloqueos de pantalla de 3 a 5 segundos.
+- **[04. Paginación Keyset y Resiliencia F5](ux/references/04-keyset-pagination-virtualization.md)**: Búsqueda determinista por cursor $O(1)$ en índice B-Tree, soporte para virtualización de listas masivas y persistencia de posición en `sessionStorage` ante recargas accidentales.
+- **[05. Mutaciones Optimistas en 0 ms](ux/references/05-optimistic-ui-rollback-patterns.md)**: Interfaz reactiva en 0 ms para reasignaciones y cambios de estado con rollback automático transparente y notificaciones toast ante errores de red.
+- **[06. Búsqueda Reactiva Sargable y Multi-Tenant](ux/references/06-sargable-search-and-multitenant-session.md)**: Debounce adaptativo con disparo instantáneo por `Enter`, búsquedas por prefijo sargable (`LIKE @q + '%'`) en <5 ms y claves aisladas en `sessionStorage` por sucursal.
+- **[07. Micro-Interacciones y Latencia Percibida](ux/references/07-micro-interactions-and-perceived-latency.md)**: Paneles laterales (drawers) deslizantes en GPU sin caída de frames (*jank = 0*), confirmaciones en línea compactas y la regla de los 1.5s para estados de éxito efímeros.
 
 ---
 
@@ -72,6 +75,7 @@ Patrones de diseño visual, estabilidad geométrica y renderizado fluido para da
 - **[03. SWR en Frontend y Umbral de Carga Diferida](ui/references/03-swr-ui-delayed-loading.md)**: Experiencia no destructiva conservando datos previos montados, regla de los 160ms de Nielsen Norman (`useDelayedLoading`) y barras de progreso continuas.
 - **[04. Arquitectura de Modales y Ciclo de Salida](ui/references/04-modal-architecture-portals-lifecycle.md)**: Desacoplamiento del DOM con `createPortal` para cubrir sidebars fijos con `backdrop-filter: blur()`, ciclo de vida con `useModalAnimation` (220ms), tecla Escape y precarga predictiva en hover.
 - **[05. Data Tables de Alta Densidad y NumberFlow](ui/references/05-high-density-data-tables-design.md)**: Encabezados sticky corporativos de alto contraste (`#005774`), alineación contable con `tabular-nums`, componente nativo `NumberFlow` en React 19 y contención de botones con CSS Grid Stacking.
+- **[06. Micro-Animaciones y Tokens de Movimiento](ui/references/06-micro-animations-and-motion-tokens.md)**: Sistema canónico de movimiento, aceleración GPU (`translateZ(0)`), prevención del bloqueo por `animation: ... both`, segmented controls elásticos y rebote táctil (*spring pop*).
 
 ---
 

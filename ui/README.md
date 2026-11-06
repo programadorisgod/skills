@@ -13,6 +13,7 @@ Este módulo recopila principios de arquitectura de interfaz, interacción visua
 | [03. SWR en Frontend y Umbral de Carga Diferida](references/03-swr-ui-delayed-loading.md) | Patrón SWR, regla de los 160ms (`useDelayedLoading`), barras sutiles | Al eliminar fogonazos de spinners y parpadeos molestos en consultas rápidas |
 | [04. Arquitectura de Modales y Ciclo de Salida](references/04-modal-architecture-portals-lifecycle.md) | `createPortal`, backdrop global desenfocado, `useModalAnimation` | Al crear diálogos que deben cubrir barras laterales fijas y cerrar con fluidez |
 | [05. Data Tables de Alta Densidad y NumberFlow](references/05-high-density-data-tables-design.md) | Sticky contrast headers, números tabulares, stacking en CSS Grid | Al diseñar tablas contables masivas, cifras animadas continuas o botones sin CLS |
+| [06. Micro-Animaciones y Tokens de Movimiento](references/06-micro-animations-and-motion-tokens.md) | Tokens canónicos, spring pop, GPU, evitar bloqueo por `animation: ... both` | Al diseñar micro-interacciones en botones, tabs elásticos, checks y cards |
 
 ---
 
