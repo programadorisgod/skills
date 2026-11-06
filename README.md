@@ -63,13 +63,15 @@ Técnicas para interfaces analíticas ultra-fluidas y sin fricción:
 
 ---
 
-## 4. 📐 Interface Design (`ui/`)
+## 4. 📐 Interface & UX Engineering (`ui/`)
 
-Patrones de diseño visual orientados a densidad de datos y legibilidad:
+Patrones de diseño visual, estabilidad geométrica y renderizado fluido para dashboards analíticos y tablas de alta densidad:
 
-- **Data Tables de Alta Densidad**: Tipografía monoespaciada para cifras monetarias, alineaciones contables y truncamiento inteligente de texto con tooltips.
-- **Layouts con Sticky Headers y Scroll Virtualizado**: Navegación de grandes volúmenes de filas manteniendo cabeceras visibles.
-- **Feedback de Estados**: Skeletons adaptativos en lugar de spinners invasivos, toasts no intrusivos y badges de estado con alto contraste accesible.
+- **[01. Estabilización Geométrica y Cero Layout Shift](ui/references/01-zero-layout-shift-geometry.md)**: Paridad de huella en skeletons (`rows={PAGE_SIZE}`), eliminación del tirón de 17px con `scrollbar-gutter: stable`, y estabilización de View Transitions (`object-fit: none`).
+- **[02. Transiciones de Altura y Colapso Asimétrico](ui/references/02-fluid-height-and-asymmetric-collapse.md)**: Contenedor `SmoothHeight` con sincronización pre-paint (`useLayoutEffect`), compensación de bordes y el patrón de retención temporal de filas salientes (`data-exiting="true"`) para erradicar huecos blancos.
+- **[03. SWR en Frontend y Umbral de Carga Diferida](ui/references/03-swr-ui-delayed-loading.md)**: Experiencia no destructiva conservando datos previos montados, regla de los 160ms de Nielsen Norman (`useDelayedLoading`) y barras de progreso continuas.
+- **[04. Arquitectura de Modales y Ciclo de Salida](ui/references/04-modal-architecture-portals-lifecycle.md)**: Desacoplamiento del DOM con `createPortal` para cubrir sidebars fijos con `backdrop-filter: blur()`, ciclo de vida con `useModalAnimation` (220ms), tecla Escape y precarga predictiva en hover.
+- **[05. Data Tables de Alta Densidad y NumberFlow](ui/references/05-high-density-data-tables-design.md)**: Encabezados sticky corporativos de alto contraste (`#005774`), alineación contable con `tabular-nums`, componente nativo `NumberFlow` en React 19 y contención de botones con CSS Grid Stacking.
 
 ---
 
